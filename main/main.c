@@ -47,18 +47,19 @@ void app_main(void)
         return;
     }
 
-    if((ret = esp_bt_dev_set_device_name(BT_DEVICE_NAME)) != ESP_OK)
+    if ((ret = esp_bt_dev_set_device_name(BT_DEVICE_NAME)) != ESP_OK)
     {
         ESP_LOGE(CSHA_TAG," %s could not set BT device name %s\n", __func__, esp_err_to_name(ret));
         return;
     }
+    
     set_uuid(config_device_uuid);
 
     ESP_LOGE("SDK WIFI", "ssid: %s", CONFIG_ESP_WIFI_SSID);
 
-    size_t x = sizeof(whitelisted_bdas) / sizeof(whitelisted_bdas[0]);
+    size_t dev_count = sizeof(whitelisted_bdas) / sizeof(whitelisted_bdas[0]);
 
-    start_ble_beacon(whitelisted_bdas, x);
+    start_ble_beacon(whitelisted_bdas, dev_count);
 
     ESP_LOGI("LIGMA", "Done!");
 }

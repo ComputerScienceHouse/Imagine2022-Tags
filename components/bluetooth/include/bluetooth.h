@@ -31,6 +31,17 @@ typedef enum {
     APP_GAP_STATE_SERVICE_DISCOVER_COMPLETE,
 } app_gap_state_t;
 
+typedef struct {
+    uint8_t adv_instance;
+    esp_ble_addr_type_t scan_addr_type;
+    esp_bd_addr_t scan_addr;
+} ble_scan_req;
+ble_scan_req *scan_info;
+
+uint8_t *wl_devs;
+size_t wl_dev_count;
+size_t wls_set;
+
 /*
 * format Bluetooth Device Address into string
 * returns pointer to string
