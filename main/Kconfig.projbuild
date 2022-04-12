@@ -1,14 +1,7 @@
 # put here your custom config value
-menu "Example Configuration"
-config ESP_WIFI_SSID
-    string "WiFi SSID"
-    default "myssid"
-    help
-	SSID (network name) for the example to connect to.
-
-config ESP_WIFI_PASSWORD
-    string "WiFi Password"
-    default "mypassword"
-    help
-	WiFi password (WPA or WPA2) for the example to use.
+menu "Main"
+config TAG_NUM
+    hex "tag number (last byte of address)"
+    range 0x0 0xff
+    default 0x0
 endmenu

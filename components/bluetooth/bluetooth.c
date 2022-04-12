@@ -1,5 +1,8 @@
 #include "bluetooth.h"
 
+uint8_t static_bda[]  ={
+    0x7, 0xf7, 0xf7, 0x6, 0xf4, 0xf2
+}; 
 static uint8_t identifier_mac[6];
 static esp_ble_adv_params_t advert_params;
 static uint8_t gatt_uuid[ESP_UUID_LEN_128];
@@ -18,6 +21,7 @@ static esp_ble_adv_data_t adv_data = {
     .service_uuid_len = sizeof(gatt_uuid),
     .p_service_uuid = gatt_uuid,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
+    //.flag = ESP_BLE_ADV_FLAG_BREDR_NOT_SPT,
 };
 
 char *bda2str(esp_bd_addr_t bda, char *str, size_t size)
@@ -65,6 +69,13 @@ void esp_gap_callback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *para
 {
     esp_err_t err;
     switch (event) {
+    case ESP_GAP_BLE_SCAN_REQ_RECEIVED_EVT:
+        //scan_info = (ble_scan_req*) param;
+        //char bda_str[18];
+
+        //bda2str(scan_info->scan_addr, bda_str, 18);
+        ESP_LOGI(CSHA_TAG, "Scan scan request");
+        break;
     //case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
     //case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
     case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
@@ -73,23 +84,21 @@ void esp_gap_callback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *para
             ESP_LOGE(CSHA_TAG, "Could not set whitelist");
             return;
         }
-        ESP_LOGI(CSHA_TAG, "Whitelist set");
+        if (wl_dev_count == 0) esp_ble_gap_start_advertising(&advert_params);
+        else ESP_LOGI(CSHA_TAG, "Whitelist set");
+
         break;
     case ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT:
         wls_set++;
         if (wls_set == wl_dev_count) esp_ble_gap_start_advertising(&advert_params);
         break;
+    case ESP_GAP_BLE_ADV_TERMINATED_EVT:
+        ESP_LOGE(CSHA_TAG, "advertise terminated");
+        break;
     case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
         ESP_LOGI(CSHA_TAG, "Advertise started");
         break;
-    case ESP_GAP_BLE_SCAN_REQ_RECEIVED_EVT:
-        scan_info = (ble_scan_req*) param;
-        char bda_str[18];
-
-        bda2str(scan_info->scan_addr, bda_str, 18);
-        ESP_LOGI(CSHA_TAG, "Scan from %s", bda_str);
-        break;
-    default:
+   default:
         ESP_LOGI(CSHA_TAG, "%d", event);
         break;
     }
@@ -127,10 +136,10 @@ esp_ble_adv_params_t* set_tag_adv_params(esp_ble_adv_params_t* param_struct)
     param_struct->channel_map = ADV_CHNL_ALL;
 
     // Advertising filter (THE IMPORTANT BIT!!!)
-    param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY; // Allow both scan and connection requests from anyone.
-    //param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_ANY; // Allow both scan req from White List devices only and connection req from anyone.
-    //param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_WLST; // Allow both scan req from anyone and connection req from White List devices only.
-    //param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST; // Allow scan and connection requests from White List devices only.
+    // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY; // Allow both scan and connection requests from anyone.
+    // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_ANY; // Allow scan req from White List devices only and connection req from anyone.
+    param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_WLST; // Allow scan req from anyone and connection req from White List devices only.
+    // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST; // Allow scan and connection requests from White List devices only.
 
 
     return param_struct;
@@ -153,19 +162,37 @@ void set_uuid(uint8_t uuid[ESP_UUID_LEN_128])
 }
 void start_ble_beacon(uint8_t whitelisted_devices[][6], size_t device_count)
 {
-    esp_efuse_mac_get_default(identifier_mac);
+    esp_err_t err;
+    esp_efuse_mac_get_custom(identifier_mac);
+
+    if ((err = esp_base_mac_addr_set(identifier_mac)) != ESP_OK)
+    {
+        ESP_LOGE(CSHA_TAG, "%s Could not set custom mac%s\n", __func__, esp_err_to_name(err));
+        return;
+    }
+    else
+    {
+        ESP_LOGI(CSHA_TAG, "Custom mac set");
+    }
+    esp_ble_gap_register_callback(esp_gap_callback);
+
+    // esp_read_mac(identifier_mac, ESP_MAC_BT);
     char bda_str[18];
     bda2str(identifier_mac, bda_str, 18);
 
-    ESP_LOGI(CSHA_TAG,"Controller BDA: %s", bda_str);
+    ESP_LOGI(CSHA_TAG,"Custom BDA: %s", bda_str);
+
+    esp_efuse_mac_get_default(identifier_mac);
+    bda2str(identifier_mac, bda_str, 18);
+    ESP_LOGI(CSHA_TAG,"Default BDA: %s", bda_str);
+
     set_tag_adv_params(&advert_params);
 
-    esp_err_t err;
     
     wl_devs = whitelisted_devices;
     wl_dev_count = device_count;
 
-    ESP_LOGI(CSHA_TAG, "print devices");
+    // ESP_LOGI(CSHA_TAG, "print devices");
     for (int i = 0; i < device_count; i++)
     {
         ESP_LOGI(CSHA_TAG, "whitelisted device: %02x:%02x:%02x:%02x:%02x:%02x",
@@ -177,7 +204,6 @@ void start_ble_beacon(uint8_t whitelisted_devices[][6], size_t device_count)
             whitelisted_devices[i][5]
         );
     }
-    esp_ble_gap_register_callback(esp_gap_callback);
     esp_ble_gap_config_adv_data(&adv_data);
     //err = esp_ble_gap_start_advertising(&advert_params);
     //ESP_LOGI(CSHA_TAG, "Advertise started");

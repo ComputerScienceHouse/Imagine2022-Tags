@@ -9,6 +9,9 @@
 #include "config.h"
 #include "bluetooth.h"
 
+const uint8_t custom_mac[] = {
+    0xBE, 0xEF, 0x34, 0x25, 0x69, CONFIG_TAG_NUM
+};
 
 void app_main(void)
 {
@@ -47,19 +50,29 @@ void app_main(void)
         return;
     }
 
-    if ((ret = esp_bt_dev_set_device_name(BT_DEVICE_NAME)) != ESP_OK)
+    set_uuid(config_device_uuid);
+    if ((ret = esp_base_mac_addr_set(custom_mac))  != ESP_OK)
     {
-        ESP_LOGE(CSHA_TAG," %s could not set BT device name %s\n", __func__, esp_err_to_name(ret));
+        ESP_LOGE(CSHA_TAG, "%s Could not set mac address %s\n", __func__, esp_err_to_name(ret));
         return;
     }
-    
-    set_uuid(config_device_uuid);
-
-    ESP_LOGE("SDK WIFI", "ssid: %s", CONFIG_ESP_WIFI_SSID);
+    else
+    {
+        uint8_t bt_addr[6];
+        esp_read_mac(bt_addr, ESP_MAC_BT);
+        ESP_LOGI(CSHA_TAG, "bt address set: %02x:%02x:%02x:%02x:%02x:%02x", 
+            bt_addr[0],
+            bt_addr[1],
+            bt_addr[2],
+            bt_addr[3],
+            bt_addr[4],
+            bt_addr[5]
+        );
+    }
 
     size_t dev_count = sizeof(whitelisted_bdas) / sizeof(whitelisted_bdas[0]);
 
-    start_ble_beacon(whitelisted_bdas, dev_count);
+    start_ble_beacon(whitelisted_bdas, ENABLE_DEVICE_WHITELIST ? dev_count: 0);
 
     ESP_LOGI("LIGMA", "Done!");
 }

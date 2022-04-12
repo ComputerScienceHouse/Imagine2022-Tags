@@ -6,16 +6,25 @@
 #include "esp_bt_defs.h"
 
 #define DEVICE_MANUFACTURER "Prof D Glizzy"
-#define BT_DEVICE_NAME "ESP tester"
+// #define BT_DEVICE_NAME "Smell1\0"
 
-static const uint8_t config_mac[] = {
-    0x78, 0x21, 0x84, 0x7, 0xae, 0xe4
+#define ENABLE_DEVICE_WHITELIST false
+
+// must be unicast address
+// first byte LSB is 0
+// first byte is even
+// !!! BT derived addr will increase last byte by 2 !!!!
+
+static const char* BT_DEVICE_NAME = "Smell1";
+
+static const uint8_t config_mac_addr[] = {
+    0xf6, 0xf7, 0xf7, 0xf7, 0xf7, 0xf2
 };
 
 static uint8_t whitelisted_bdas[][6] = {
     {0xc0, 0x6b, 0x55, 0x93, 0x0c, 0xab},
-    {0x00, 0xe5, 0x00, 0x02, 0xd0, 0xc3},
-    {0x00, 0xe5, 0x00, 0x02, 0xd0, 0xc5}
+    {0x00, 0xee, 0x00, 0x02, 0xd0, 0xc3},
+    {0xf6, 0xf7, 0xf7, 0xf7, 0xf7, 0x00}
     };
 
 // unique UUIDs required
