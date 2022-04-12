@@ -4,7 +4,7 @@ MOUNT_DIR=/mnt/ImagineRIT2022
 mkdir -p "$IMAGINE_DIR"
 podman run --rm -it                             \
     --name=imaginerit-tag-dev              \
-    --device=/dev/ttyUSB1  \
+    --device=/dev/ttyUSB0  \
     -v "$IMAGINE_DIR":"$MOUNT_DIR"              \
     --group-add keep-groups                     \
     --security-opt label=disable                \

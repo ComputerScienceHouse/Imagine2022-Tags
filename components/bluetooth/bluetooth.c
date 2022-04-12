@@ -163,28 +163,18 @@ void set_uuid(uint8_t uuid[ESP_UUID_LEN_128])
 void start_ble_beacon(uint8_t whitelisted_devices[][6], size_t device_count)
 {
     esp_err_t err;
-    esp_efuse_mac_get_custom(identifier_mac);
+    esp_base_mac_addr_get(identifier_mac);
 
-    if ((err = esp_base_mac_addr_set(identifier_mac)) != ESP_OK)
-    {
-        ESP_LOGE(CSHA_TAG, "%s Could not set custom mac%s\n", __func__, esp_err_to_name(err));
-        return;
-    }
-    else
-    {
-        ESP_LOGI(CSHA_TAG, "Custom mac set");
-    }
     esp_ble_gap_register_callback(esp_gap_callback);
 
     // esp_read_mac(identifier_mac, ESP_MAC_BT);
     char bda_str[18];
     bda2str(identifier_mac, bda_str, 18);
 
-    ESP_LOGI(CSHA_TAG,"Custom BDA: %s", bda_str);
+    ESP_LOGI(CSHA_TAG,"Custom MAC: %s", bda_str);
 
-    esp_efuse_mac_get_default(identifier_mac);
-    bda2str(identifier_mac, bda_str, 18);
-    ESP_LOGI(CSHA_TAG,"Default BDA: %s", bda_str);
+    // esp_efuse_mac_get_default(identifier_mac);
+    // bda2str(identifier_mac, bda_str, 18);
 
     set_tag_adv_params(&advert_params);
 

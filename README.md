@@ -4,7 +4,9 @@ Embedded code running on each of the tracking tags for ImagineRIT 2022
 
 ## How to use
 
-For more detailed instructions, see HACKING/README.md.
+Set a unique device number with idf.py menuconfig and navigate to section labeled Main
+
+
 
 ### Hardware Required
 
