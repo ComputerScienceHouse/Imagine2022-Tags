@@ -23,6 +23,24 @@ void app_main(void)
     }
     ESP_ERROR_CHECK( ret );
 
+    if ((ret = esp_base_mac_addr_set(custom_mac))  != ESP_OK)
+    {
+        ESP_LOGE(CSHA_TAG, "%s Could not set mac address %s\n", __func__, esp_err_to_name(ret));
+        return;
+    }
+    else
+    {
+        uint8_t bt_addr[6];
+        esp_read_mac(bt_addr, ESP_MAC_BT);
+        ESP_LOGI(CSHA_TAG, "bt address set: %02x:%02x:%02x:%02x:%02x:%02x", 
+            bt_addr[0],
+            bt_addr[1],
+            bt_addr[2],
+            bt_addr[3],
+            bt_addr[4],
+            bt_addr[5]
+        );
+    }
     
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
@@ -51,24 +69,6 @@ void app_main(void)
     }
 
     set_uuid(config_device_uuid);
-    if ((ret = esp_base_mac_addr_set(custom_mac))  != ESP_OK)
-    {
-        ESP_LOGE(CSHA_TAG, "%s Could not set mac address %s\n", __func__, esp_err_to_name(ret));
-        return;
-    }
-    else
-    {
-        uint8_t bt_addr[6];
-        esp_read_mac(bt_addr, ESP_MAC_BT);
-        ESP_LOGI(CSHA_TAG, "bt address set: %02x:%02x:%02x:%02x:%02x:%02x", 
-            bt_addr[0],
-            bt_addr[1],
-            bt_addr[2],
-            bt_addr[3],
-            bt_addr[4],
-            bt_addr[5]
-        );
-    }
 
     size_t dev_count = sizeof(whitelisted_bdas) / sizeof(whitelisted_bdas[0]);
 
