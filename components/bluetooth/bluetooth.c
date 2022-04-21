@@ -136,9 +136,9 @@ esp_ble_adv_params_t* set_tag_adv_params(esp_ble_adv_params_t* param_struct)
     param_struct->channel_map = ADV_CHNL_ALL;
 
     // Advertising filter (THE IMPORTANT BIT!!!)
-    // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY; // Allow both scan and connection requests from anyone.
+    param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY; // Allow both scan and connection requests from anyone.
     // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_ANY; // Allow scan req from White List devices only and connection req from anyone.
-    param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_WLST; // Allow scan req from anyone and connection req from White List devices only.
+    // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_WLST; // Allow scan req from anyone and connection req from White List devices only.
     // param_struct->adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST; // Allow scan and connection requests from White List devices only.
 
 
@@ -167,14 +167,10 @@ void start_ble_beacon(uint8_t whitelisted_devices[][6], size_t device_count)
 
     esp_ble_gap_register_callback(esp_gap_callback);
 
-    // esp_read_mac(identifier_mac, ESP_MAC_BT);
     char bda_str[18];
     bda2str(identifier_mac, bda_str, 18);
 
     ESP_LOGI(CSHA_TAG,"Custom MAC: %s", bda_str);
-
-    // esp_efuse_mac_get_default(identifier_mac);
-    // bda2str(identifier_mac, bda_str, 18);
 
     set_tag_adv_params(&advert_params);
 
@@ -182,23 +178,23 @@ void start_ble_beacon(uint8_t whitelisted_devices[][6], size_t device_count)
     wl_devs = whitelisted_devices;
     wl_dev_count = device_count;
 
-    // ESP_LOGI(CSHA_TAG, "print devices");
-    for (int i = 0; i < device_count; i++)
+    if (device_count > 0)
     {
-        ESP_LOGI(CSHA_TAG, "whitelisted device: %02x:%02x:%02x:%02x:%02x:%02x",
-            whitelisted_devices[i][0], 
-            whitelisted_devices[i][1], 
-            whitelisted_devices[i][2], 
-            whitelisted_devices[i][3], 
-            whitelisted_devices[i][4], 
-            whitelisted_devices[i][5]
-        );
+        for (int i = 0; i < device_count; i++)
+        {
+            ESP_LOGI(CSHA_TAG, "whitelisted device: %02x:%02x:%02x:%02x:%02x:%02x",
+                whitelisted_devices[i][0], 
+                whitelisted_devices[i][1], 
+                whitelisted_devices[i][2], 
+                whitelisted_devices[i][3], 
+                whitelisted_devices[i][4], 
+                whitelisted_devices[i][5]
+            );
+        }
     }
     esp_ble_gap_config_adv_data(&adv_data);
-    //err = esp_ble_gap_start_advertising(&advert_params);
-    //ESP_LOGI(CSHA_TAG, "Advertise started");
     for(;;)
     {
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 }

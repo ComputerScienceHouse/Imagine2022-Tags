@@ -6,9 +6,10 @@
 #include "esp_bt_defs.h"
 
 #define DEVICE_MANUFACTURER "Prof D Glizzy"
-// #define BT_DEVICE_NAME "Smell1\0"
 
 #define ENABLE_DEVICE_WHITELIST false
+
+#define CONFIG_TAG_NUM 0x05
 
 // must be unicast address
 // first byte LSB is 0
@@ -17,9 +18,6 @@
 
 static const char* BT_DEVICE_NAME = "Smell1";
 
-static const uint8_t config_mac_addr[] = {
-    0xf6, 0xf7, 0xf7, 0xf7, 0xf7, 0xf2
-};
 
 static uint8_t whitelisted_bdas[][6] = {
     {0xc0, 0x6b, 0x55, 0x93, 0x0c, 0xab},
